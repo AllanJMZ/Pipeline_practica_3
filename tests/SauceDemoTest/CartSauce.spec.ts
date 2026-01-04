@@ -1,21 +1,20 @@
-import { test } from '@playwright/test';
-import { LoginPage } from '../../e2e_Sauce-design/pages/LoginPage';
-import { CartPage } from '../../e2e_Sauce-design/pages/CartPage';
-import { CartActions } from '../../e2e_Sauce-design/actions/cartActions';
+import { test, expect } from '@playwright/test';
+import { Actor } from '../../e2e-screenplay/actors/Actor';
+import { OpenApp, Login } from '../../e2e-screenplay/tasks/Tasks';
+import { AddToCart, GoToCart } from '../../e2e-screenplay/tasks/shopTasks';
 
 
 test('Agregar al carrito', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.login();
-    
+    const actor = Actor.named('User', page);
 
-    // Instanciar CartPage y usar sus métodos
-    const cartPage = new CartPage(page);
-    await cartPage.addToCart("sauce-labs-backpack");
+    //When
+    await actor.attemptsTo(
+        OpenApp.at('https://www.saucedemo.com/'),
+        Login.withCredentials('standard_user', 'secret_sauce'),
+        AddToCart.item('sauce-labs-backpack'),
+        GoToCart.view()
+    );
 
-    const cartActions = new CartActions(page);
-    await cartActions.goToCart();
-
-    //ver carrito y detalles
-    await cartPage.validateItemInCart("sauce-labs-backpack", "Sauce Labs Backpack");
+    //Then
+    await expect(page.locator('.inventory_item_name')).toHaveText('Sauce Labs Backpack');
 });
